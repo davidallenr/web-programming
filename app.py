@@ -11,4 +11,4 @@ def get_index():
 
 @app.route("/hello")
 def get_hello():
-    return render_template('hello.html', name="david")
+    return render_template('hello.html', name="Santa")

@@ -7,6 +7,10 @@
     <title>HELLO</title>
   </head>
   <body>
-    <h1>Hello there {{ name }}</h1>
+    {% if name == "Santa" %}
+    <h1>Merry Christmas! {{ name }}</h1>
+    {% else %}
+    <h1>Hello! {{ name }}</h1>
+    {% endif %}
   </body>
 </html>
