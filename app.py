@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, make_response
 from flask import render_template
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, make_response
 
 app = Flask(__name__)
 
@@ -10,7 +10,7 @@ username = None
 @app.route("/")
 @app.route("/home")
 def get_index():
-    global username
+    username = request.cookies.get("username", None)
     if username == None:
         return redirect(url_for('get_login'))
     return render_template('home.html', name=username)
@@ -18,7 +18,7 @@ def get_index():
 
 @app.route("/other")
 def get_other():
-    global username
+    username = request.cookies.get("username", None)
     if username == None:
         return redirect(url_for('get_login'))
     return render_template('other.html', name=username)
@@ -26,7 +26,7 @@ def get_other():
 
 @app.route("/login", methods=['GET'])
 def get_login():
-    global username
+    username = request.cookies.get("username", None)
     if username != None:
         return redirect(url_for('get_index'))
     return render_template('login.html')
@@ -34,9 +34,10 @@ def get_login():
 
 @app.route("/login", methods=['POST'])
 def post_login():
-    global username
     username = request.form.get("username", None)
-    return redirect(url_for('get_index'))
+    response = make_response(redirect(url_for('get_index')))
+    response.set_cookie("username", "***" + username + "***")
+    return response
 
 
 @app.route("/logout", methods=['GET'])
