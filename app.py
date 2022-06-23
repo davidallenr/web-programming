@@ -37,12 +37,12 @@ def get_login():
 @app.route("/login", methods=['POST'])
 def post_login():
     username = request.form.get("username", None)
-    password = request.form.get("password", None)
     if username != None:
-        if session['username'] == username and session['password'] == password:
-            return redirect(url_for('get_register'))
+        session['username'] = username
+        session['custid'] = 1234
+        return redirect(url_for('get_index'))
     else:
-        return redirect(url_for('get_register'))
+        return redirect(url_for('get_login'))
 
 
 @app.route("/register", methods=['GET'])
@@ -67,5 +67,5 @@ def post_register():
 @app.route("/logout", methods=['GET'])
 def get_logout():
     session.pop('username', None)
-    session.pop('custid', None)
+    session.pop('password', None)
     return redirect(url_for('get_login'))
