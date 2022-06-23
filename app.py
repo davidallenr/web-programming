@@ -4,7 +4,8 @@ from flask import request, redirect, url_for, make_response
 from flask import session
 
 app = Flask(__name__)
-app.secret_key="ksmdflkji240[i2hjfsklnf"
+app.secret_key = "ksmdflkji240[i2hjfsklnf"
+
 
 @app.route("/")
 @app.route("/home")
@@ -16,6 +17,7 @@ def get_index():
         return redirect(url_for('get_login'))
     return render_template('home.html', name=username)
 
+
 @app.route("/other")
 def get_other():
     if 'username' in session:
@@ -24,25 +26,46 @@ def get_other():
         return redirect(url_for('get_login'))
     return render_template('other.html', name=username)
 
+
 @app.route("/login", methods=['GET'])
 def get_login():
     if 'username' in session:
         return redirect(url_for('get_index'))
     return render_template('login.html')
 
+
 @app.route("/login", methods=['POST'])
 def post_login():
     username = request.form.get("username", None)
+    password = request.form.get("password", None)
     if username != None:
-        session['username'] = username
-        session['custid'] = 1234
-        return redirect(url_for('get_index'))
+        if session['username'] == username and session['password'] == password:
+            return redirect(url_for('get_register'))
     else:
-        return redirect(url_for('get_login'))
+        return redirect(url_for('get_register'))
+
+
+@app.route("/register", methods=['GET'])
+def get_register():
+    if 'username' not in session:
+        return render_template('register.html')
+
+
+@app.route("/register", methods=['POST'])
+def post_register():
+    username = request.form.get("username", None)
+    password = request.form.get("password", None)
+    password2 = request.form.get("password2", None)
+    if 'username' and 'password' not in session:
+        if username != None and password != None and password2 == password:
+            session['username'] = username
+            session['password'] = password
+            return redirect(url_for('get_login'))
+    return render_template('register.html')
+
 
 @app.route("/logout", methods=['GET'])
 def get_logout():
-    session.pop('username',None) 
-    session.pop('custid',None)
+    session.pop('username', None)
+    session.pop('custid', None)
     return redirect(url_for('get_login'))
-
