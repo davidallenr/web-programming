@@ -1,7 +1,9 @@
+import json
 from flask import Flask
 from flask import render_template
 from flask import request, redirect, url_for, make_response
 from flask import session
+import json
 
 app = Flask(__name__)
 app.secret_key = "ksmdflkji240[i2hjfsklnf"
@@ -12,7 +14,6 @@ app.secret_key = "ksmdflkji240[i2hjfsklnf"
 def get_index():
     if 'username' in session:
         username = session['username']
-        custid = session['custid']
     else:
         return redirect(url_for('get_login'))
     return render_template('home.html', name=username)
@@ -37,12 +38,24 @@ def get_login():
 @app.route("/login", methods=['POST'])
 def post_login():
     username = request.form.get("username", None)
-    if username != None:
-        session['username'] = username
-        session['custid'] = 1234
-        return redirect(url_for('get_index'))
-    else:
+    if username == None:
         return redirect(url_for('get_login'))
+
+    try:
+        with open(f"storage/{username}.json", "r") as f:
+            creds = json.load(f)
+    except Exception as e:
+        print(f"Error in reading creds. {e}")
+        return redirect(url_for('get_login'))
+
+    password = request.form.get("password", None)
+
+    if password != creds['password']:
+        print('Bad password')
+        return redirect(url_for('get_login'))
+    else:
+        session['username'] = username
+        return redirect(url_for('get_index'))
 
 
 @app.route("/register", methods=['GET'])
@@ -54,17 +67,47 @@ def get_register():
 @app.route("/register", methods=['POST'])
 def post_register():
     username = request.form.get("username", None)
+    if username == None:
+        return redirect(url_for('get_register'))
+    # for c in username.lower():
+    #     if not ((c in range('a', 'z')) or (c in range('0', '9'))):
+    #         print("Illegal character in username")
+    #         return redirect(url_for('get_register'))
     password = request.form.get("password", None)
+    if password == None:
+        return redirect(url_for('register'))
+    # if len(password) < 8:
+    #     print("Password not long enough")
+    #     return redirect(url_for('get_register'))
+
     password2 = request.form.get("password2", None)
-    if 'username' and 'password' not in session:
-        if username != None and password != None and password2 == password:
-            session['username'] = username
-            session['password'] = password
-            return redirect(url_for('get_login'))
-    return render_template('register.html')
+
+    if password2 == None:
+        return redirect(url_for('get_register'))
+    if password2 != password:
+        print("Password not matching")
+        return redirect(url_for('get_register'))
+    try:
+        with open(f"storage/{username}.json", "r") as f:
+            creds = json.load(f)
+            print("user already exists")
+            return redirect(url_for('get_register'))
+    except Exception:
+        pass
+
+    creds = {
+        "username": username,
+        "password": password
+    }
+
+    with open(f"storage/{username}.json", "w") as f:
+        json.dump(creds, f)
+
+    session['username'] = username
+    return redirect(url_for('get_index'))
 
 
-@app.route("/logout", methods=['GET'])
+@ app.route("/logout", methods=['GET'])
 def get_logout():
     session.pop('username', None)
     session.pop('password', None)
